@@ -8,6 +8,9 @@ import java.util.List;
 import com.api.ventas_api_spring_boot.dto.VentaDto;
 import com.api.ventas_api_spring_boot.services.VentaServices;
 
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+
 @RestController
 @RequestMapping("/api/ventas")
 public class VentaController {
@@ -39,5 +42,25 @@ public class VentaController {
     public ResponseEntity<Void> eliminar(@PathVariable Integer ID_Venta) {
         ventaSer.eliminarVen(ID_Venta);
         return ResponseEntity.noContent().build();
+    }
+
+    //METODO HATEOAS para buscar por ID
+    @GetMapping("/hateoas/{id}")
+    public VentaDto obtenerHATEOAS(@PathVariable Integer id) {
+    VentaDto dto = ventaSer.buscarVen(id);
+    dto.add(linkTo(methodOn(VentaController.class).obtenerHATEOAS(id)).withSelfRel());
+    dto.add(linkTo(methodOn(VentaController.class).obtenerTodosHATEOAS()).withRel("todos"));
+    dto.add(linkTo(methodOn(VentaController.class).eliminar(id)).withRel("eliminar"));
+    return dto;
+    }
+
+    //METODO HATEOAS para listar todos los productos utilizando HATEOAS
+    @GetMapping("/hateoas")
+    public List<VentaDto> obtenerTodosHATEOAS() {
+    List<VentaDto> lista = ventaSer.listarVen();
+    for (VentaDto dto : lista) {
+    dto.add(linkTo(methodOn(VentaController.class).obtenerHATEOAS(dto.getID_Venta())).withSelfRel());
+    }
+    return lista;
     }
 }
