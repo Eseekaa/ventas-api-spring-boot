@@ -1,75 +1,79 @@
 package com.api.ventas_api_spring_boot.services;
 
+import com.api.ventas_api_spring_boot.dto.VentaDto;
 import com.api.ventas_api_spring_boot.models.Venta;
-
-import java.util.List;
-import java.util.stream.Collectors;
-
+import com.api.ventas_api_spring_boot.repository.VentaRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.api.ventas_api_spring_boot.dto.VentaDto;
-import com.api.ventas_api_spring_boot.repository.VentaRepository;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
-
 public class VentaServices {
 
     @Autowired
+    private VentaRepository ventaRepository;
 
-    private VentaRepository venRep;
-
-    private Venta toEntity(VentaDto dto)
-
-    { 
-        Venta ven = new Venta();
-        ven.setIdVenta(dto.getID_Venta());
-
-        ven.setFecha(dto.getFecha());
-        ven.setMonto(dto.getMonto());
-        return ven;
+    // Convertir de DTO a entidad
+    private Venta toEntity(VentaDto dto) {
+        Venta venta = new Venta();
+        venta.setIdVenta(dto.getID_Venta());
+        venta.setFecha(dto.getFecha());
+        venta.setMonto(dto.getMonto());
+        return venta;
     }
 
-    private VentaDto toDto(Venta ven)
-
-    {
+    // Convertir de entidad a DTO
+    private VentaDto toDto(Venta venta) {
         VentaDto dto = new VentaDto();
-        dto.setID_Venta(ven.getIdVenta());
-
-        dto.setFecha(ven.getFecha());
-        dto.setMonto(ven.getMonto());
+        dto.setID_Venta(venta.getIdVenta());
+        dto.setFecha(venta.getFecha());
+        dto.setMonto(venta.getMonto());
         return dto;
     }
 
-    public VentaDto crearVen (VentaDto dto)
-
-    {
-        Venta ven = toEntity(dto);
-        Venta savedVenta = venRep.save(ven);
-        return toDto(savedVenta);
+    // Crear
+    public VentaDto crearVenta(VentaDto dto) {
+        Venta nuevaVenta = ventaRepository.save(toEntity(dto));
+        return toDto(nuevaVenta);
     }
 
-    public List <VentaDto> listarVen()
-    {
-        return venRep.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    // Listar todas
+    public List<VentaDto> listarVentas() {
+        return ventaRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
-    public VentaDto buscarVen(Integer ID_Venta)
-    {
-        Venta ven = venRep.findById(ID_Venta).orElseThrow(() -> new RuntimeException("Venta no encontrada."));
-        return toDto(ven);
+    // Buscar por ID
+    public VentaDto buscarVenta(int id) {
+        Optional<Venta> ventaOpt = ventaRepository.findById(id);
+        if (ventaOpt.isEmpty()) {
+            throw new RuntimeException("Venta no encontrada.");
+        }
+        return toDto(ventaOpt.get());
     }
 
-    public VentaDto actuaVen(Integer ID_Venta, VentaDto dto)
-    {
-        Venta venExi = venRep.findById(ID_Venta)
-        .orElseThrow(() -> new RuntimeException("Venta no encontrada con ID: " + ID_Venta));
-
-        return toDto(venRep.save(venExi));
+    // Actualizar
+    public VentaDto actualizarVenta(int id, VentaDto dto) {
+        Venta venta = ventaRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Venta no encontrada."));
+        venta.setFecha(dto.getFecha());
+        venta.setMonto(dto.getMonto());
+        Venta actualizada = ventaRepository.save(venta);
+        return toDto(actualizada);
     }
 
-    public void eliminarVen(Integer ID_Venta)
-    {
-        venRep.deleteById(ID_Venta);
+    // Eliminar
+    public void eliminarVenta(int id) {
+        ventaRepository.deleteById(id);
+    }
+
+    public Object actuaVen(Integer iD_Venta, VentaDto dto) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'actuaVen'");
     }
 }
